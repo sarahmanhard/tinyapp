@@ -9,6 +9,10 @@ const urlDatabase = {
   // Your URL database
 };
 
+const users = {
+  // Your users database
+};
+
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
@@ -19,16 +23,20 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+  const userId = req.cookies.user_id;
+  const user = users[userId];
   const templateVars = {
+    user,
     urls: urlDatabase,
-    username: req.cookies["username"],
   };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
+  const userId = req.cookies.user_id;
+  const user = users[userId];
   const templateVars = {
-    username: req.cookies["username"],
+    user,
   };
   res.render("urls_new", templateVars);
 });
@@ -41,13 +49,36 @@ app.get("/urls/:id", (req, res) => {
   // URL details logic
 });
 
-app.get('/register', (req, res) => {
-  res.render('register');
+app.get("/register", (req, res) => {
+  res.render("register");
 });
 
+app.post("/register", (req, res) => {
+  const { email, password } = req.body;
+  const userId = generateRandomString();
 
-app.post("/urls/:id/delete", (req, res) => {
-  // URL deletion logic
+  if (!email || !password) {
+    res.status(400).send("Email and password fields cannot be empty");
+    return;
+  }
+
+  for (const userIdKey in users) {
+    if (users[userIdKey].email === email) {
+      res.status(400).send("Email address already registered");
+      return;
+    }
+  }
+
+  const newUser = {
+    id: userId,
+    email,
+    password,
+  };
+
+  users[userId] = newUser;
+
+  res.cookie("user_id", userId);
+  res.redirect("/urls");
 });
 
 app.post("/login", (req, res) => {

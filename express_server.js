@@ -41,6 +41,11 @@ app.get("/urls/:id", (req, res) => {
   // URL details logic
 });
 
+app.get('/register', (req, res) => {
+  res.render('register');
+});
+
+
 app.post("/urls/:id/delete", (req, res) => {
   // URL deletion logic
 });

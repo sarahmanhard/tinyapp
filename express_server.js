@@ -6,8 +6,14 @@ const PORT = 8080; // default port 8080
 app.set("view engine", "ejs");
 
 const urlDatabase = {
-  "abc123": { longURL: "http://www.example.com", userId: "user1" },
-  "def456": { longURL: "http://www.google.com", userId: "user2" },
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
 };
 
 const users = {
@@ -26,6 +32,16 @@ const users = {
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+const urlsForUser = function (id) {
+  const filteredUrls = {};
+  for (const url in urlDatabase) {
+    if (urlDatabase[url].userID === id) {
+      filteredUrls[url] = urlDatabase[url];
+    }
+  }
+  return filteredUrls;
+};
+
 // Middleware to check if user is logged in
 const requireLogin = (req, res, next) => {
   const userId = req.cookies.user_id;
@@ -42,14 +58,14 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
-app.get("/urls", requireLogin, (req, res) => {
+app.get("/urls", (req, res) => {
   const userId = req.cookies.user_id;
-  const user = users[userId];
-  const templateVars = {
-    user,
-    urls: urlDatabase,
-  };
-  res.render("urls_index", templateVars);
+  if (userId) {
+    const userUrls = urlsForUser(userId);
+    res.render("urls_index", { urls: userUrls, user: users[userId] });
+  } else {
+    res.render("urls_index", { user: null });
+  }
 });
 
 app.get("/urls/new", requireLogin, (req, res) => {
@@ -69,7 +85,7 @@ app.post("/urls", requireLogin, (req, res) => {
   const longURL = req.body.longURL;
   urlDatabase[shortURL] = {
     longURL,
-    userId: user.id,
+    userID: user.id,
   };
 
   res.redirect("/urls");
@@ -97,7 +113,6 @@ app.get("/urls/:id", (req, res) => {
 app.get("/register", (req, res) => {
   res.render("urls_register");
 });
-
 
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
@@ -135,7 +150,6 @@ app.get("/login", (req, res) => {
   res.render("login", templateVars);
 });
 
-
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
   const user = getUserByEmail(email);
@@ -154,16 +168,10 @@ app.post("/login", (req, res) => {
   res.redirect("/urls");
 });
 
-app.get("/login", (req, res) => {
-  res.render("login");
-});
-
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
   res.redirect("/login");
 });
-
-
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);

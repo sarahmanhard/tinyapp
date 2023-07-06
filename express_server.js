@@ -1,4 +1,3 @@
-const { getUserByEmail } = require('./helpers');
 const express = require("express");
 const app = express();
 const PORT = 8080;
@@ -61,7 +60,6 @@ const requireLogin = (req, res, next) => {
     next();
   }
 };
-
 // Routes
 
 app.get("/", (req, res) => {
@@ -74,9 +72,10 @@ app.get("/urls", (req, res) => {
     const userUrls = urlsForUser(userId);
     res.render("urls_index", { urls: userUrls, user: users[userId] });
   } else {
-    res.render("urls_index", { user: null });
+    res.render("urls_index", { urls: {}, user: null }); // Pass an empty object for urls when the user is not logged in
   }
 });
+
 
 app.get("/urls/new", requireLogin, (req, res) => {
   const userId = req.session.user_id;

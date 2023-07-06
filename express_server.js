@@ -110,9 +110,10 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-app.get("/register", (req, res) => {
-  res.render("urls_register");
+app.get('/register', (req, res) => {
+  res.render('urls_register', { user: req.user });
 });
+
 
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
@@ -159,7 +160,7 @@ app.post("/login", (req, res) => {
     return;
   }
 
-  if (user.password !== password) {
+  if (!bcrypt.compareSync(password, user.password)) { // Compare the hashed password
     res.status(403).send("Invalid password");
     return;
   }
@@ -167,6 +168,7 @@ app.post("/login", (req, res) => {
   res.cookie("user_id", user.id);
   res.redirect("/urls");
 });
+
 
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");

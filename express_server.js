@@ -2,6 +2,9 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 const path = require('path');
+const { getUserByEmail, generateRandomString } = require("./helpers");
+const { urlDatabase, users } = require("./database");
+
 
 
 const bodyParser = require("body-parser");
@@ -21,30 +24,6 @@ app.set("view engine", "ejs");
 
 app.set('views', path.join(__dirname, 'views'));
 
-// Database
-const urlDatabase = {
-  b6UTxQ: {
-    longURL: "https://www.tsn.ca",
-    userID: "aJ48lW",
-  },
-  i3BoGr: {
-    longURL: "https://www.google.ca",
-    userID: "aJ48lW",
-  },
-};
-
-const users = {
-  user1: {
-    id: "user1",
-    email: "user1@example.com",
-    password: "password1",
-  },
-  user2: {
-    id: "user2",
-    email: "user2@example.com",
-    password: "password2",
-  },
-};
 
 // Helper functions 
 // Function to filter and return URLs associated with a specific user ID
@@ -94,6 +73,26 @@ app.get("/urls/new", requireLogin, (req, res) => {
   res.render("urls_new", templateVars);
 });
 
+app.get("/urls/:id/edit", (req, res) => {
+  const shortURL = req.params.id;
+  const url = urlDatabase[shortURL];
+
+  if (!url) {
+    res.status(404).send("URL not found");
+    return;
+  }
+
+  const userId = req.session.user_id;
+  const user = users[userId];
+  const templateVars = {
+    user,
+    shortURL,
+    longURL: urlDatabase[shortURL].longURL,
+  };
+
+  res.render("urls_edit", templateVars);
+});
+
 app.post("/urls", requireLogin, (req, res) => {
   const userId = req.session.user_id;
   const user = users[userId];
@@ -131,10 +130,28 @@ app.get("/urls/:id", (req, res) => {
     shortURL,
     longURL: urlDatabase[shortURL].longURL,
   };
-  console.log(urlDatabase[shortURL].longURL); 
   res.render("urls_show", templateVars);
 });
 
+app.get("/", (req, res) => {
+  const userId = req.session.user_id;
+  if (userId) {
+    res.redirect("/urls");
+  } else {
+    res.redirect("/login");
+  }
+});
+
+
+app.post("/urls/:id", (req, res) => {
+  const shortURL = req.params.id;
+  const newLongURL = req.body.longURL;
+  
+  // Update the longURL in the database
+  urlDatabase[shortURL].longURL = newLongURL;
+
+  res.redirect("/urls");
+});
 
 app.get("/register", (req, res) => {
   res.render("urls_register", { user: req.session.user });
@@ -203,24 +220,3 @@ app.post("/logout", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
-// Helper function to find a user in the users object based on email
-function getUserByEmail(email) {
-  for (const userId in users) {
-    if (users[userId].email === email) {
-      return users[userId];
-    }
-  }
-  return null; // User not found
-}
-
-// Helper function to generate a random string
-function generateRandomString() {
-  let result = "";
-  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  const charactersLength = characters.length;
-  for (let i = 0; i < 6; i++) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-  }
-  return result;
-}

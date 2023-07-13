@@ -17,6 +17,7 @@
         <tr>
           <th scope="col">Short URL ID</th>
           <th scope="col">Long URL</th>
+          <th scope="col">Edit</th>
           <th scope="col">Delete</th>
         </tr>
       </thead>
@@ -25,6 +26,11 @@
           <tr>
             <td><%= id %></td>
             <td><%= urls[id].longURL %></td>
+            <td>
+              <form method="GET" action="/urls/<%= id %>/edit">
+                <button type="submit" class="btn btn-primary">Edit</button>
+              </form>
+            </td>
             <td>
               <form method="POST" action="/urls/<%= id %>/delete">
                 <button type="submit" class="btn btn-danger">Delete</button>
@@ -41,3 +47,4 @@
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 </body>
 </html>
+

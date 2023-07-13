@@ -1,5 +1,5 @@
 const assert = require('chai').assert;
-const { getUserByEmail } = require('../helpers');
+const { getUserByEmail } = require('../helpers.js');
 
 // getUserByEmail Test
 const testUsers = {

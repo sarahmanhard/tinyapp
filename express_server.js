@@ -1,6 +1,8 @@
 const express = require("express");
 const app = express();
 const PORT = 8080;
+const path = require('path');
+
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -17,6 +19,9 @@ const bcrypt = require("bcrypt");
 
 app.set("view engine", "ejs");
 
+app.set('views', path.join(__dirname, 'views'));
+
+// Database
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
@@ -41,6 +46,8 @@ const users = {
   },
 };
 
+// Helper functions 
+// Function to filter and return URLs associated with a specific user ID
 const urlsForUser = function (id) {
   const filteredUrls = {};
   for (const url in urlDatabase) {
@@ -51,7 +58,8 @@ const urlsForUser = function (id) {
   return filteredUrls;
 };
 
-// Middleware to check if user is logged in
+// Middleware 
+// Middleware function to check if user is logged in
 const requireLogin = (req, res, next) => {
   const userId = req.session.user_id;
   if (!userId || !users[userId]) {
@@ -100,6 +108,13 @@ app.post("/urls", requireLogin, (req, res) => {
   res.redirect("/urls");
 });
 
+app.post("/urls/:id/delete", (req, res) => {
+  const shortURL = req.params.id;
+  delete urlDatabase[shortURL];
+  res.redirect("/urls");
+});
+
+
 app.get("/urls/:id", (req, res) => {
   const shortURL = req.params.id;
   const url = urlDatabase[shortURL];
@@ -114,10 +129,12 @@ app.get("/urls/:id", (req, res) => {
   const templateVars = {
     user,
     shortURL,
-    longURL: url.longURL,
+    longURL: urlDatabase[shortURL].longURL,
   };
+  console.log(urlDatabase[shortURL].longURL); 
   res.render("urls_show", templateVars);
 });
+
 
 app.get("/register", (req, res) => {
   res.render("urls_register", { user: req.session.user });
@@ -157,7 +174,7 @@ app.get("/login", (req, res) => {
   const templateVars = {
     user,
   };
-  res.render("login", templateVars);
+  res.render("urls_login.ejs", templateVars);
 });
 
 app.post("/login", (req, res) => {
@@ -165,12 +182,12 @@ app.post("/login", (req, res) => {
   const user = getUserByEmail(email);
 
   if (!user) {
-    res.status(403).send("Invalid email address");
+    res.status(403).send("Invalid login credentials");
     return;
   }
 
   if (!bcrypt.compareSync(password, user.password)) {
-    res.status(403).send("Invalid password");
+    res.status(403).send("Invalid login credentials");
     return;
   }
 

@@ -32,7 +32,7 @@ const getUserIdByEmail = (email, database) => {
 const getUrlsForUser = (userId, database) => {
   const userUrls = {};
   for (let shortUrl in database) {
-    if (userId === database[shortUrl].userId) {
+    if (userId === database[shortUrl].userID) { // Fix the property name to 'userID'
       userUrls[shortUrl] = database[shortUrl];
     }
   }
@@ -45,7 +45,3 @@ module.exports = {
   getUserIdByEmail,
   getUrlsForUser
 };
-
-
-
-

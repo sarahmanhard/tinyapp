@@ -45,6 +45,7 @@ const requireLogin = (req, res, next) => {
 };
 
 // Routes
+// Redirects users to their URLs if logged in, otherwise redirects to login page
 app.get("/", (req, res) => {
   const userId = req.session.user_id;
   if (userId) {
@@ -54,6 +55,7 @@ app.get("/", (req, res) => {
   }
 });
 
+// Lists URLs for the logged-in user
 app.get("/urls", requireLogin, (req, res) => {
   const userId = req.session.user_id;
   const userUrls = urlsForUser(userId);
@@ -64,6 +66,7 @@ app.get("/urls", requireLogin, (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+// Renders the new URL creation page
 app.get("/urls/new", requireLogin, (req, res) => {
   const userId = req.session.user_id;
   const templateVars = {
@@ -72,6 +75,7 @@ app.get("/urls/new", requireLogin, (req, res) => {
   res.render("urls_new", templateVars);
 });
 
+// Allows editing of a specific URL
 app.get("/urls/:id/edit", requireLogin, (req, res) => {
   const userId = req.session.user_id;
   const shortURL = req.params.id;
@@ -81,12 +85,11 @@ app.get("/urls/:id/edit", requireLogin, (req, res) => {
     res.status(404).send("URL not found");
     return;
   }
-  // Other users will get a access denied message if trying to access another's URL
+  // Other users will get an access denied message if trying to access another's URL
   if (url.userID !== userId) {
     res.status(403).send("Access denied");
     return;
   }
-
 
   const templateVars = {
     user: users[userId],
@@ -97,6 +100,7 @@ app.get("/urls/:id/edit", requireLogin, (req, res) => {
   res.render("urls_edit", templateVars);
 });
 
+// Creates a new URL
 app.post("/urls", requireLogin, (req, res) => {
   const userId = req.session.user_id;
   const longURL = req.body.longURL;
@@ -110,6 +114,7 @@ app.post("/urls", requireLogin, (req, res) => {
   res.redirect("/urls");
 });
 
+// Updates an existing URL
 app.post("/urls/:id", requireLogin, (req, res) => {
   const userId = req.session.user_id;
   const shortURL = req.params.id;
@@ -126,6 +131,7 @@ app.post("/urls/:id", requireLogin, (req, res) => {
   res.redirect("/urls");
 });
 
+// Deletes a URL
 app.post("/urls/:id/delete", requireLogin, (req, res) => {
   const userId = req.session.user_id;
   const shortURL = req.params.id;
@@ -140,6 +146,7 @@ app.post("/urls/:id/delete", requireLogin, (req, res) => {
   res.redirect("/urls");
 });
 
+// Displays a specific URL's details
 app.get("/urls/:id", requireLogin, (req, res) => {
   const userId = req.session.user_id;
   const shortURL = req.params.id;
@@ -159,22 +166,35 @@ app.get("/urls/:id", requireLogin, (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-app.get("/u/:id", (req, res) => {
-  const shortURL = req.params.id;
+// Redirects to the original URL associated with a short URL
+app.get("/u/:shortURL", (req, res) => {
+  const shortURL = req.params.shortURL;
   const url = urlDatabase[shortURL];
 
   if (!url) {
-    res.status(404).send("URL not found");
+    let templateVars = {
+      status: 404,
+      message: "URL not found",
+      user: users[req.session.user_id]
+    };
+    res.status(404);
+    res.render("urls_error", templateVars);
     return;
   }
 
-  res.redirect(url.longURL);
+  if (url.longURL.startsWith("http://")) {
+    res.redirect(url.longURL);
+  } else {
+    res.redirect(`http://${url.longURL}`);
+  }
 });
 
+// Renders the registration page
 app.get("/register", (req, res) => {
   res.render("urls_register", { user: req.session.user });
 });
 
+// Handles user registration
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
 
@@ -203,6 +223,7 @@ app.post("/register", (req, res) => {
   res.redirect("/urls");
 });
 
+// Renders the login page
 app.get("/login", (req, res) => {
   const userId = req.session.user_id;
   const templateVars = {
@@ -211,6 +232,7 @@ app.get("/login", (req, res) => {
   res.render("urls_login", templateVars);
 });
 
+// Handles user login
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
   const user = getUserByEmail(email, users);
@@ -224,11 +246,13 @@ app.post("/login", (req, res) => {
   res.redirect("/urls");
 });
 
+// Handles user logout
 app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect("/login");
 });
 
+// Starts the server
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });

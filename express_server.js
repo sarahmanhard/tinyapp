@@ -114,18 +114,18 @@ app.post("/urls", requireLogin, (req, res) => {
   res.redirect("/urls");
 });
 
-// Updates an existing URL
-app.post("/urls/:id", requireLogin, (req, res) => {
+// Handles updating an existing URL
+app.post("/urls/:id/edit", requireLogin, (req, res) => {
   const userId = req.session.user_id;
   const shortURL = req.params.id;
-  const url = urlDatabase[shortURL];
+  const newLongURL = req.body.urlupdate;
 
+  const url = urlDatabase[shortURL];
   if (!url || url.userID !== userId) {
     res.status(403).send("Access denied");
     return;
   }
 
-  const newLongURL = req.body.longURL;
   url.longURL = newLongURL;
 
   res.redirect("/urls");
@@ -159,6 +159,7 @@ app.get("/urls/:id", requireLogin, (req, res) => {
 
   const templateVars = {
     user: users[userId],
+    owner: url.userID === userId, // This sets the value of 'owner' to true if the user owns the URL
     shortURL,
     longURL: url.longURL,
   };

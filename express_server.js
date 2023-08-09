@@ -176,19 +176,16 @@ app.get("/u/:shortURL", (req, res) => {
     let templateVars = {
       status: 404,
       message: "URL not found",
-      user: users[req.session.user_id]
+      user: users[req.session.user_id],
     };
     res.status(404);
     res.render("urls_error", templateVars);
     return;
   }
 
-  if (url.longURL.startsWith("http://")) {
-    res.redirect(url.longURL);
-  } else {
-    res.redirect(`http://${url.longURL}`);
-  }
+  res.redirect(url.longURL); // Redirect to the long URL
 });
+
 
 // Renders the registration page
 app.get("/register", (req, res) => {

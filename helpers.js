@@ -1,47 +1,50 @@
-// Generates a random string of length 6
-const generateRandomString = () => {
-  const alphanumeric = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  let result = '';
-  for (let i = 0; i < 6; i++) {
-    result += alphanumeric.charAt(Math.floor(Math.random() * alphanumeric.length));
-  }
-  return result;
-};
+//++++++FUNCTIONS+++++++
 
-// Finds the user object by email in the users database
-const getUserByEmail = (email, database) => {
-  for (let userId in database) {
-    if (email === database[userId].email) {
-      return database[userId];
+const urlsForUser = (id, urlDatabase) => {
+  let userURLdata = {};
+  for (const url in urlDatabase) {
+    if (id === urlDatabase[url].userID) {
+      userURLdata[url] = urlDatabase[url];
     }
   }
-  return undefined;
+  return userURLdata;
 };
 
-// Returns the user ID by email
-const getUserIdByEmail = (email, database) => {
-  for (let userId in database) {
-    if (email === database[userId].email) {
-      return userId;
+//create a random 6 character string for short url
+const getRandomString = (numOfChars) => {
+  let randomCharsStr = '';
+  const possibleChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  for (let i = 0; i < numOfChars; i++) {
+    randomCharsStr += possibleChars.charAt(Math.floor(Math.random() * possibleChars.length));
+  }
+  return randomCharsStr;
+};
+
+//create a function to look up if email already exist
+const emailExists = (emailAddress, users) => { 
+  for (const user in users) {
+    if (emailAddress === users[user].email) {
+      return true;
     }
   }
-  return undefined;
 };
 
-// Returns an object containing URLs that belong to a specific user
-const getUrlsForUser = (userId, database) => {
-  const userUrls = {};
-  for (let shortUrl in database) {
-    if (userId === database[shortUrl].userID) { // Fix the property name to 'userID'
-      userUrls[shortUrl] = database[shortUrl];
+const getUserById = (id, users) => {
+  const user = users[id];
+  if (user) {
+    return user;
+  }
+  return null;
+};
+
+const getUserByEmail = (email, users) => {
+  for (const userID in users) {
+    const user = users[userID];
+    if (email === user.email) {
+      return user;
     }
   }
-  return userUrls;
+  return null;
 };
 
-module.exports = {
-  generateRandomString,
-  getUserByEmail,
-  getUserIdByEmail,
-  getUrlsForUser
-};
+module.exports = { getUserByEmail, getUserById, urlsForUser, emailExists, getRandomString }; 

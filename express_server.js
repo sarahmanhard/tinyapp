@@ -23,7 +23,7 @@ app.use(
 app.set("view engine", "ejs");
 
 
-//DATA OBJECTS
+//Data objects
 
 const urlDatabase = {}; // store URLS
 const users = {}; // store User data
@@ -174,6 +174,7 @@ app.get("/urls/:shortURL", (req, res) => {
 
   if (!userID) {
     templateVars.user = null;
+    templateVars.owner = null; // whenever accessing variable, check that it exists
   } else {
     const userURLs = urlsForUser(userID, urlDatabase);
     const shortURL = req.params.shortURL;
